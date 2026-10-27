@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Formwise — App Replica</title>
+<style>
+:root{
+  --bg:#101310;--surface:#1A1F19;--raised:#242B23;--border:#323C30;
+  --lime:#C6F36A;--text:#F4F6F0;--sec:#A8B0A3;--muted:#85917F;
+  --peach:#FFC3A6;--lav:#B9ACF5;--blue:#A7C8E8;--danger:#FF9690;--teal:#98f5c4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,"Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.55;min-height:100vh}
+button,a{font:inherit;cursor:pointer;border:none;background:none;text-decoration:none;color:inherit}
+.shell{max-width:430px;margin:0 auto;padding:0 16px 90px;position:relative}
+
+/* ── Tab bar ── */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#161b16;border-top:1px solid var(--border);display:flex;z-index:100}
+.tab-btn{flex:1;padding:10px 0 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:600;letter-spacing:.03em;transition:color .15s}
+.tab-btn.active{color:var(--lime)}
+.tab-icon{font-size:19px;line-height:1}
+
+/* ── Top bar ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:850;letter-spacing:-.04em;font-size:20px}
+.brand-mark{display:grid;place-items:center;width:36px;height:36px;background:var(--lime);color:#17200b;border-radius:12px;font-weight:900;font-size:17px}
+
+/* ── Views ── */
+.view{display:none;padding-top:8px}
+.view.active{display:block}
+
+/* ── Screen header ── */
+.screen-title{font-size:26px;font-weight:800;letter-spacing:-.055em;line-height:1.1;padding:16px 0 4px}
+.screen-sub{color:var(--sec);font-size:13px;padding:0 0 14px}
+
+/* ── Card ── */
+.card{background:linear-gradient(150deg,#1a211a,#131813);border:1px solid var(--border);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:11px;margin-bottom:12px}
+
+/* ── Badge ── */
+.badge{display:inline-block;padding:5px 9px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:.06em}
+.badge-lime{background:#c6f36a19;color:var(--lime)}
+.badge-lav{background:#b9acf519;color:var(--lav)}
+
+/* ── Chips ── */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px}
+.chip{padding:9px 14px;border-radius:30px;background:var(--raised);border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--sec);transition:.15s;cursor:pointer}
+.chip.active{background:var(--lime);border-color:var(--lime);color:#17200b}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 16px;border-radius:14px;font-weight:700;font-size:14px;width:100%;border:1px solid var(--border);transition:.15s}
+.btn-primary{background:var(--lime);color:#17200b;border-color:var(--lime)}
+.btn-secondary{background:var(--raised);color:var(--text)}
+.btn-row{display:flex;gap:8px}
+.btn-row .btn{flex:1;width:auto}
+
+/* ── Stats ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-card{background:linear-gradient(145deg,#171e18,#121713);border:1px solid var(--border);border-radius:16px;padding:14px}
+.stat-label{font-size:9px;letter-spacing:.1em;color:var(--muted);font-weight:800}
+.stat-value{font-size:25px;font-weight:800;letter-spacing:-.06em;margin:5px 0 2px}
+.stat-sub{font-size:11px;color:var(--muted);line-height:1.4}
+
+/* ── Hero panel ── */
+.hero-panel{background:linear-gradient(145deg,#202b1e,#151c15);border:1px solid #354431;border-radius:18px;padding:20px;margin-bottom:14px}
+.eyebrow{text-transform:uppercase;font-size:10px;letter-spacing:.14em;color:var(--lime);font-weight:850;margin-bottom:6px}
+.hero-num{font-size:42px;font-weight:850;letter-spacing:-.07em;margin-bottom:3px}
+.progress-bar-wrap{height:8px;background:var(--raised);border-radius:20px;overflow:hidden;margin:6px 0}
+.progress-bar-fill{height:100%;border-radius:20px;background:var(--lime)}
+
+/* ── Plan card ── */
+.plan-card{cursor:pointer;display:block;transition:.1s}
+.plan-card:hover .card{border-color:#4a5a47;transform:translateY(-1px)}
+.plan-icon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;font-size:22px;flex-shrink:0}
+.plan-header{display:flex;justify-content:space-between;align-items:flex-start}
+.plan-name{font-weight:800;font-size:17px;letter-spacing:-.04em;margin-bottom:3px;color:var(--text)}
+.plan-desc{color:var(--sec);font-size:12px;line-height:1.55}
+.muscle-chips{display:flex;flex-wrap:wrap;gap:5px}
+.mtag{padding:4px 8px;border-radius:7px;font-size:10px;font-weight:700}
+.plan-footer{display:flex;justify-content:space-between;align-items:center}
+.plan-meta{color:var(--muted);font-size:12px}
+.arrow-circle{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:14px}
+
+/* ── Exercise row ── */
+.ex-header{display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none}
+.ex-num{width:40px;height:40px;border-radius:12px;background:#c6f36a18;display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--lime);flex-shrink:0}
+.ex-name{font-weight:700;font-size:15px;letter-spacing:-.02em;margin-bottom:5px}
+.ex-tags{display:flex;flex-wrap:wrap;gap:5px}
+.ex-tag{padding:4px 8px;border-radius:7px;font-size:10px;font-weight:700}
+.ex-chev{color:var(--muted);font-size:12px;padding-top:12px;flex-shrink:0}
+.ex-prescription{color:var(--sec);font-size:13px;margin-top:8px}
+
+/* ── Exercise expanded ── */
+.ex-detail{display:none;margin-top:14px;flex-direction:column;gap:10px}
+.ex-detail.open{display:flex}
+.instr-box{background:#0e130f;border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.step-row{display:flex;align-items:flex-start;gap:10px}
+.step-n{color:var(--lime);font-weight:800;font-size:12px;min-width:18px;padding-top:2px;flex-shrink:0}
+.step-t{color:var(--sec);font-size:13px;line-height:1.55;flex:1}
+.coach-cue{border-top:1px solid var(--border);margin-top:6px;padding-top:8px;display:flex;gap:8px;align-items:flex-start}
+.cue-text{color:var(--lime);font-size:12px;line-height:1.5;flex:1}
+
+/* ── Video ── */
+.vid-label{color:var(--sec);font-size:11px;font-weight:600;letter-spacing:.4px;margin-bottom:6px}
+.vid-wrap{width:100%;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;position:relative;min-height:190px;max-height:260px}
+.vid-thumb{width:100%;height:100%;object-fit:cover;display:block}
+.vid-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.play-btn{width:62px;height:62px;border-radius:31px;background:rgba(0,0,0,.65);border:2px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;cursor:pointer;transition:.15s}
+.play-btn:hover{transform:scale(1.07);background:rgba(0,0,0,.8)}
+.tap-hint{position:absolute;bottom:11px;left:0;right:0;text-align:center;color:rgba(255,255,255,.65);font-size:11px;pointer-events:none}
+
+/* ── Search field ── */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.field label{color:var(--sec);font-size:12px}
+.field input{background:#0d120e;border:1px solid var(--border);border-radius:12px;padding:13px 14px;font-size:15px;color:var(--text);font:inherit;outline:none;width:100%}
+.field input:focus{border-color:#5a6e57}
+
+/* ── Session ── */
+.session-top{background:linear-gradient(150deg,#1e271d,#151c14);border:1px solid #3a4e38;border-radius:18px;padding:18px;margin-bottom:12px}
+.set-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.set-row:last-child{border-bottom:none}
+.set-num{width:28px;height:28px;border-radius:8px;background:var(--raised);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--sec);flex-shrink:0}
+.set-num.done{background:#c6f36a19;color:var(--lime)}
+.set-input{flex:1;background:#0d120e;border:1px solid var(--border);border-radius:9px;padding:9px 10px;font-size:15px;color:var(--text);font:inherit;text-align:center;max-width:72px}
+.set-mark{width:36px;height:36px;border-radius:10px;background:var(--raised);display:grid;place-items:center;font-size:16px;color:var(--muted);flex-shrink:0;cursor:pointer;transition:.15s}
+.set-mark.done{background:#c6f36a19;color:var(--lime)}
+.row{display:flex;align-items:center;gap:10px}
+.row.between{justify-content:space-between}
+.small-text{color:var(--sec);font-size:12px;line-height:1.6}
+.divider{border:none;border-top:1px solid var(--border);margin:6px 0}
+
+/* ── Progress ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 6px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+td{padding:9px 6px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── TOP BAR ── -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">F</span>
+      formwise<span style="font-weight:450;color:#879181;font-size:11px;letter-spacing:0;margin-left:2px">/ YOUR COACH</span>
+    </div>
+    <span style="color:var(--sec);font-size:12px">Hey, Arsene 👋</span>
+  </header>
+
+  <!-- ════════════════════ HOME ════════════════════ -->
+  <div class="view active" id="view-home">
+    <p class="screen-title">Ready to<br><span style="color:var(--lime)">train today?</span></p>
+    <p class="screen-sub">Tuesday · Push day is on your schedule</p>
+
+    <div class="hero-panel">
+      <div class="eyebrow">THIS WEEK'S MISSION</div>
+      <div class="hero-num">2 <span style="font-size:22px;font-weight:500;color:var(--sec)">/ 3</span></div>
+      <div class="small-text" style="margin-bottom:10px">strength sessions completed</div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:66%"></div></div>
+      <p class="small-text" style="margin-top:8px">One more session to hit your weekly target.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">WORKOUTS LOGGED</div>
+        <div class="stat-value">14</div>
+        <div class="stat-sub">Since you started</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">CURRENT WEIGHT</div>
+        <div class="stat-value">98.4 <span style="font-size:13px;font-weight:500">kg</span></div>
+        <div class="stat-sub" style="color:#c6f36a">−1.6 kg from start</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">EXERCISES LOGGED</div>
+        <div class="stat-value">62</div>
+        <div class="stat-sub">Completed entries</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">CURRENT PHASE</div>
+        <div class="stat-value" style="font-size:17px">Learn</div>
+        <div class="stat-sub">Weeks 1–2 · form first</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="badge badge-lime">QUICK START</span>
+      <div style="font-weight:700;font-size:16px">Push day · Chest &amp; Shoulders</div>
+      <div class="small-text">5 exercises · ~40 min</div>
+      <button class="btn btn-primary" onclick="switchTab('session')">▶ &nbsp;Start this workout</button>
+    </div>
+
+    <div class="card">
+      <span class="badge badge-lav">NEW TO TRAINING?</span>
+      <div style="font-weight:700;font-size:15px">A little guidance goes a long way.</div>
+      <div class="small-text">12-week beginner plans, technique checklists, and recovery activities.</div>
+      <button class="btn btn-secondary">🧭 Open training companion</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════ WORKOUTS ════════════════════ -->
+  <div class="view" id="view-workouts">
+    <p class="screen-title">Find your next<br><span style="color:var(--lime)">challenge.</span></p>
+    <p class="screen-sub">Good plans. Great possibilities.</p>
+
+    <div class="card" style="background:linear-gradient(150deg,#232b22,#191e18)">
+      <div class="row between">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px;margin-bottom:3px">A movement for every moment.</div>
+          <div class="small-text">45+ exercises with technique guides &amp; videos.</div>
+        </div>
+        <button class="btn btn-secondary" style="width:auto;padding:10px 12px;font-size:12px;flex-shrink:0">📖 Library</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Search your workouts</label>
+      <input type="text" id="wsearch" placeholder="Push day, glutes, chest…" oninput="renderPlans()">
+    </div>
+
+    <div class="chips">
+      <button class="chip active" onclick="setChip(this,'filter')">All workouts</button>
+      <button class="chip" onclick="setChip(this,'filter')">My plans</button>
+      <button class="chip" onclick="setChip(this,'filter')">Archived</button>
+    </div>
+    <div class="chips" style="margin-bottom:16px">
+      <button class="chip active" onclick="setChip(this,'equip')">All equipment</button>
+      <button class="chip" onclick="setChip(this,'equip')">Bodyweight</button>
+      <button class="chip" onclick="setChip(this,'equip')">Dumbbells</button>
+      <button class="chip" onclick="setChip(this,'equip')">Full gym</button>
+    </div>
+
+    <div id="plan-grid"></div>
+  </div>
+
+  <!-- ════════════════════ PLAN DETAIL ════════════════════ -->
+  <div class="view" id="view-detail">
+    <div style="padding:14px 0 8px">
+      <button onclick="switchTab('workouts')" style="color:var(--lime);font-size:13px;font-weight:600;display:flex;align-items:center;gap:4px">← Back to workouts</button>
+    </div>
+    <div id="detail-body"></div>
+  </div>
+
+  <!-- ════════════════════ SESSION ════════════════════ -->
+  <div class="view" id="view-session">
+    <p class="screen-title">Push day</p>
+    <p class="screen-sub">Chest · Shoulders · Triceps · 5 exercises</p>
+
+    <div class="session-top">
+      <div class="row between" style="margin-bottom:10px">
+        <span class="badge badge-lime">IN PROGRESS</span>
+        <span class="small-text" id="timer-display">⏱ 0:00</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="session-prog" style="width:0%"></div></div>
+      <div class="small-text" style="margin-top:5px" id="session-progress-txt">Exercise 1 of 5</div>
+    </div>
+
+    <div class="card">
+      <span class="badge badge-lime" style="align-self:flex-start">EXERCISE 1 OF 5</span>
+      <div style="font-weight:800;font-size:18px;letter-spacing:-.03em">Dumbbell Bench Press</div>
+      <div class="small-text">Chest · Dumbbells · 3 sets × 10 reps · 60s rest</div>
+      <div class="divider"></div>
+      <div>
+        <div class="set-row">
+          <div class="set-num done">01</div>
+          <input class="set-input" type="number" value="10" placeholder="reps">
+          <input class="set-input" type="text" value="20" placeholder="kg">
+          <div class="set-mark done" onclick="toggleSet(this)">✓</div>
+        </div>
+        <div class="set-row">
+          <div class="set-num">02</div>
+          <input class="set-input" type="number" value="10" placeholder="reps">
+          <input class="set-input" type="text" placeholder="kg">
+          <div class="set-mark" onclick="toggleSet(this)">✓</div>
+        </div>
+        <div class="set-row">
+          <div class="set-num">03</div>
+          <input class="set-input" type="number" value="10" placeholder="reps">
+          <input class="set-input" type="text" placeholder="kg">
+          <div class="set-mark" onclick="toggleSet(this)">✓</div>
+        </div>
+      </div>
+
+      <!-- Video in session -->
+      <div>
+        <div class="vid-label">DEMONSTRATION VIDEO</div>
+        <div class="vid-wrap" id="sess-vid">
+          <img class="vid-thumb" src="https://img.youtube.com/vi/dGqI0Z5ul4k/mqdefault.jpg" alt="Bench press">
+          <div class="vid-overlay">
+            <div class="play-btn" onclick="playVid('sess-vid','dGqI0Z5ul4k')">▶</div>
+          </div>
+          <div class="tap-hint">Tap to load video</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary">📖 Form guide</button>
+        <button class="btn btn-primary">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════ PROGRESS ════════════════════ -->
+  <div class="view" id="view-progress">
+    <p class="screen-title">Your<br><span style="color:var(--lime)">progress.</span></p>
+    <p class="screen-sub">Track the trend, not just one day's number.</p>
+
+    <div class="card">
+      <span class="badge badge-lime">BODY WEIGHT</span>
+      <div style="font-weight:700;font-size:15px">98.4 kg <span style="color:var(--lime);font-size:13px">↓ 1.6 kg</span></div>
+      <div class="small-text">Last weigh-in: today</div>
+      <svg viewBox="0 0 280 60" style="width:100%;height:58px">
+        <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C6F36A" stop-opacity=".3"/><stop offset="100%" stop-color="#C6F36A" stop-opacity="0"/></linearGradient></defs>
+        <path d="M0 42 L35 40 L70 44 L105 36 L140 30 L175 26 L210 22 L245 18 L280 14" stroke="#C6F36A" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M0 42 L35 40 L70 44 L105 36 L140 30 L175 26 L210 22 L245 18 L280 14 L280 60 L0 60Z" fill="url(#wg)"/>
+        <circle cx="280" cy="14" r="4" fill="#C6F36A"/>
+      </svg>
+      <button class="btn btn-secondary">+ Log today's weight</button>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom:14px">
+      <div class="stat-card"><div class="stat-label">SESSIONS</div><div class="stat-value">14</div><div class="stat-sub">Total logged</div></div>
+      <div class="stat-card"><div class="stat-label">EXERCISES</div><div class="stat-value">62</div><div class="stat-sub">Sets completed</div></div>
+      <div class="stat-card"><div class="stat-label">WT CHANGE</div><div class="stat-value" style="color:var(--lime)">−1.6</div><div class="stat-sub">kg since start</div></div>
+      <div class="stat-card"><div class="stat-label">DAYS ACTIVE</div><div class="stat-value">18</div><div class="stat-sub">In tracker</div></div>
+    </div>
+
+    <div class="card">
+      <span class="badge badge-lav">RECENT SESSIONS</span>
+      <table>
+        <thead><tr><th>Date</th><th>Workout</th><th style="text-align:right">Exercises</th></tr></thead>
+        <tbody>
+          <tr><td>Today</td><td>Push day</td><td style="text-align:right">5</td></tr>
+          <tr><td>Mon</td><td>Pull day</td><td style="text-align:right">5</td></tr>
+          <tr><td>Sat</td><td>Lower body essentials</td><td style="text-align:right">5</td></tr>
+          <tr><td>Thu</td><td>Full body foundations</td><td style="text-align:right">5</td></tr>
+          <tr><td>Tue</td><td>Glute builder</td><td style="text-align:right">5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════════════════ PROFILE ════════════════════ -->
+  <div class="view" id="view-profile">
+    <p class="screen-title">Your<br><span style="color:var(--lime)">profile.</span></p>
+    <p class="screen-sub">Personalise your experience.</p>
+
+    <div class="card" style="align-items:center;padding:24px;text-align:center">
+      <div style="width:72px;height:72px;border-radius:36px;background:#c6f36a18;display:grid;place-items:center;font-size:32px;margin-bottom:6px">💪</div>
+      <div style="font-weight:800;font-size:20px;letter-spacing:-.04em">Arsene</div>
+      <div class="small-text">Beginner · Build muscle &amp; lose fat · Full gym</div>
+    </div>
+
+    <div class="card">
+      <span class="badge badge-lime">ABOUT YOU</span>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span class="small-text">Age</span><b style="font-size:13px">19</b></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span class="small-text">Height</span><b style="font-size:13px">183 cm</b></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span class="small-text">Start weight</span><b style="font-size:13px">100 kg</b></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span class="small-text">Experience</span><b style="font-size:13px">Beginner</b></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0"><span class="small-text">Weekly target</span><b style="font-size:13px">3 sessions</b></div>
+      <button class="btn btn-secondary">✏️ Edit profile</button>
+    </div>
+
+    <div class="card">
+      <span class="badge badge-lav">SETTINGS</span>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span class="small-text">Units</span><b style="font-size:13px">Metric (kg)</b></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span class="small-text">Default rest</span><b style="font-size:13px">60 sec</b></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0"><span class="small-text">Haptic feedback</span><b style="font-size:13px">On</b></div>
+    </div>
+  </div>
+
+  <!-- ── TAB BAR ── -->
+  <nav class="tabbar">
+    <button class="tab-btn active" id="tb-home" onclick="switchTab('home')"><span class="tab-icon">🏠</span>Home</button>
+    <button class="tab-btn" id="tb-workouts" onclick="switchTab('workouts')"><span class="tab-icon">🏋️</span>Workouts</button>
+    <button class="tab-btn" id="tb-session" onclick="switchTab('session')"><span class="tab-icon">▶</span>Session</button>
+    <button class="tab-btn" id="tb-progress" onclick="switchTab('progress')"><span class="tab-icon">📊</span>Progress</button>
+    <button class="tab-btn" id="tb-profile" onclick="switchTab('profile')"><span class="tab-icon">👤</span>Profile</button>
+  </nav>
+</div>
+
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+const PLANS = [
+  { id:'full-body', name:'Full body foundations', desc:'A balanced beginning. Build confidence, one good rep at a time.', accent:'#C6F36A', icon:'🏋️', muscles:['Legs','Chest','Back','Glutes','Core'], mins:38,
+    exercises:[
+      { name:'Goblet squat', muscle:'Legs', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'5Y3KW5rWMh4',
+        steps:['Hold a dumbbell close to your chest, feet shoulder-width apart.','Sit down between your hips, keeping your whole foot grounded.','Stand tall, driving through your feet.'], cue:'Start light and use a comfortable depth.' },
+      { name:'Dumbbell bench press', muscle:'Chest', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'dGqI0Z5ul4k',
+        steps:['Lie on a bench with feet planted and dumbbells beside your chest.','Press upward with wrists over elbows.','Lower slowly, keeping shoulders supported.'], cue:'Use a manageable load.' },
+      { name:'One-arm dumbbell row', muscle:'Back', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'DhewkuU_95s',
+        steps:['Support one hand on a stable bench and hinge at the hips.','Pull the dumbbell toward your hip without rotating your trunk.','Lower with control and repeat on both sides.'], cue:'Repetitions are per side.' },
+      { name:'Romanian deadlift', muscle:'Glutes', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'hCDzSR6Tgow',
+        steps:['Stand tall with soft knees and dumbbells in front of your thighs.','Push your hips back while keeping the weights close.','Return to standing when you feel a comfortable hamstring stretch.'], cue:'Keep your back comfortable.' },
+      { name:'Plank shoulder tap', muscle:'Core', equip:'Bodyweight', sets:3, reps:12, rest:60, vid:'yeKv5ML5yOY',
+        steps:['Start in a high plank with feet comfortably wide.','Lift one hand and tap the opposite shoulder.','Alternate with minimal hip movement.'], cue:'Count each tap as one rep.' },
+    ]},
+  { id:'push', name:'Push day', desc:'Chest, shoulders, and triceps.', accent:'#FFC3A6', icon:'💪', muscles:['Chest','Shoulders','Arms'], mins:40,
+    exercises:[
+      { name:'Dumbbell bench press', muscle:'Chest', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'dGqI0Z5ul4k',
+        steps:['Lie on a bench with feet planted and dumbbells beside your chest.','Press upward with wrists over elbows.','Lower slowly, keeping shoulders supported.'], cue:'Use a manageable load.' },
+      { name:'Incline dumbbell press', muscle:'Chest', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'DbFgADa2PL8',
+        steps:['Set bench to 30–45°, sit with a dumbbell on each knee.','Press upward with wrists stacked over elbows.','Lower slowly until you feel a comfortable stretch.'], cue:'Think "press up and slightly back" to hit the upper chest.' },
+      { name:'Overhead press', muscle:'Shoulders', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'qEwKCR5JCog',
+        steps:['Hold dumbbells near shoulder height with elbows underneath.','Brace your trunk and press overhead.','Lower steadily without arching your lower back.'], cue:'Use a pain-free range of motion.' },
+      { name:'Push-up', muscle:'Chest', equip:'Bodyweight', sets:3, reps:12, rest:60, vid:'IODxDxX7oi4',
+        steps:['Place hands slightly wider than shoulders on the floor.','Keep a straight line from shoulders through hips.','Lower your chest, then push away from the surface.'], cue:'Raise hands on a bench to make it easier.' },
+      { name:'Cable triceps pushdown', muscle:'Arms', equip:'Full gym', sets:3, reps:12, rest:60, vid:'2-LAMcpzODU',
+        steps:['Stand at a cable station with elbows by your sides.','Extend your elbows and press the handle down.','Return under control without moving your upper arms.'], cue:'Keep wrists comfortable.' },
+    ]},
+  { id:'pull', name:'Pull day', desc:'Back and arms, with control.', accent:'#A7C8E8', icon:'🎯', muscles:['Back','Arms','Shoulders'], mins:38,
+    exercises:[
+      { name:'One-arm dumbbell row', muscle:'Back', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'DhewkuU_95s',
+        steps:['Support one hand on a stable bench and hinge at the hips.','Pull the dumbbell toward your hip without rotating your trunk.','Lower with control.'], cue:'Repetitions are per side.' },
+      { name:'Lat pulldown', muscle:'Back', equip:'Full gym', sets:3, reps:10, rest:60, vid:'iKrKgWR9wbY',
+        steps:['Sit with thighs secured and take a comfortable grip.','Pull the bar toward your upper chest with elbows down.','Return slowly without swinging.'], cue:'Avoid pulling the bar behind your neck.' },
+      { name:'Dumbbell curl', muscle:'Arms', equip:'Dumbbells', sets:3, reps:12, rest:60, vid:'ykJmrZ5v0Oo',
+        steps:['Stand with arms at your sides and palms forward.','Bend your elbows without swinging.','Lower the weights slowly.'], cue:'Keep elbows near your sides.' },
+      { name:'Cable face pull', muscle:'Shoulders', equip:'Full gym', sets:3, reps:15, rest:60, vid:'rep-qVOkqgk',
+        steps:['Set the cable to eye height with a rope attachment.','Pull the rope toward your face, driving elbows out and back.','Return slowly with controlled tension.'], cue:'Drive elbows back and apart.' },
+      { name:'Resistance band row', muscle:'Back', equip:'Resistance bands', sets:3, reps:12, rest:60, vid:'GZbfZ033f74',
+        steps:['Secure a band to a suitable anchor at chest height.','Pull your elbows back while standing tall.','Return slowly while keeping tension.'], cue:'Inspect the band before starting.' },
+    ]},
+  { id:'lower', name:'Lower body essentials', desc:'A strong foundation for everything you do.', accent:'#C6F36A', icon:'🦵', muscles:['Legs','Glutes'], mins:42,
+    exercises:[
+      { name:'Goblet squat', muscle:'Legs', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'5Y3KW5rWMh4',
+        steps:['Hold a dumbbell close to your chest, feet shoulder-width apart.','Sit down between your hips, keeping your whole foot grounded.','Stand tall, driving through your feet.'], cue:'Start light and use a comfortable depth.' },
+      { name:'Romanian deadlift', muscle:'Glutes', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'hCDzSR6Tgow',
+        steps:['Stand tall with soft knees and dumbbells in front of your thighs.','Push your hips back while keeping the weights close.','Return to standing when you feel a comfortable hamstring stretch.'], cue:'Keep your back comfortable.' },
+      { name:'Reverse lunge', muscle:'Legs', equip:'Bodyweight', sets:3, reps:10, rest:60, vid:'QOVaHwm-Q6U',
+        steps:['Stand tall and step one foot backward.','Bend both knees and lower within a comfortable range.','Push through the front foot to return. Alternate sides.'], cue:'Use support for balance.' },
+      { name:'Glute bridge', muscle:'Glutes', equip:'Bodyweight', sets:3, reps:12, rest:60, vid:'mm4wbmtDrUc',
+        steps:['Lie on your back with knees bent and feet flat.','Press through your feet and lift your hips.','Pause, then lower slowly.'], cue:'Avoid overextending your lower back.' },
+      { name:'Standing calf raise', muscle:'Legs', equip:'Bodyweight', sets:3, reps:15, rest:45, vid:'gwLzBJYoWlI',
+        steps:['Stand beside support with feet hip-width apart.','Rise onto the balls of your feet.','Lower slowly to the floor.'], cue:'Use support for balance.' },
+    ]},
+  { id:'glutes', name:'Glute builder', desc:'Focused posterior chain work — hips, hamstrings, and glutes.', accent:'#98f5c4', icon:'🔥', muscles:['Glutes','Legs'], mins:44,
+    exercises:[
+      { name:'Dumbbell hip thrust', muscle:'Glutes', equip:'Dumbbells', sets:3, reps:10, rest:90, vid:'LM8XHLYJoYs',
+        steps:['Sit on the floor with upper back against a bench, dumbbell across your hips.','Drive through your heels and squeeze glutes to lift your hips.','Lower slowly without overarching your lower back.'], cue:'Squeeze at the top for a full second.' },
+      { name:'Romanian deadlift', muscle:'Glutes', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'hCDzSR6Tgow',
+        steps:['Stand tall with soft knees and dumbbells in front of your thighs.','Push your hips back while keeping the weights close.','Return to standing when you feel a comfortable hamstring stretch.'], cue:'Keep your back comfortable.' },
+      { name:'Bulgarian split squat', muscle:'Legs', equip:'Dumbbells', sets:3, reps:10, rest:90, vid:'oBpE_8hVxD4',
+        steps:['Stand in front of a bench and place your rear foot on it.','Lower your back knee toward the floor with control.','Drive through your front heel to stand; knees tracking over toes.'], cue:'Practice bodyweight first.' },
+      { name:'Glute bridge', muscle:'Glutes', equip:'Bodyweight', sets:3, reps:15, rest:60, vid:'mm4wbmtDrUc',
+        steps:['Lie on your back with knees bent and feet flat.','Press through your feet and lift your hips.','Pause, then lower slowly.'], cue:'Avoid overextending your lower back.' },
+      { name:'Seated calf raise', muscle:'Legs', equip:'Full gym', sets:3, reps:15, rest:45, vid:'gwLzBJYoWlI',
+        steps:['Sit with the machine pad just above your knees.','Rise onto the balls of your feet as high as comfortable.','Lower slowly until you feel a full calf stretch.'], cue:'Pause at top and bottom for full range.' },
+    ]},
+  { id:'bodyweight', name:'Anywhere, anytime', desc:'No equipment. Just you and a little momentum.', accent:'#B9ACF5', icon:'⚡', muscles:['Chest','Legs','Glutes','Core','Arms'], mins:25,
+    exercises:[
+      { name:'Push-up', muscle:'Chest', equip:'Bodyweight', sets:3, reps:12, rest:60, vid:'IODxDxX7oi4',
+        steps:['Place hands slightly wider than shoulders.','Keep a straight line from shoulders through hips.','Lower your chest, then push away from the surface.'], cue:'Raise hands on a bench to make it easier.' },
+      { name:'Reverse lunge', muscle:'Legs', equip:'Bodyweight', sets:3, reps:10, rest:60, vid:'QOVaHwm-Q6U',
+        steps:['Stand tall and step one foot backward.','Bend both knees and lower within a comfortable range.','Push through the front foot to return.'], cue:'Use support for balance.' },
+      { name:'Glute bridge', muscle:'Glutes', equip:'Bodyweight', sets:3, reps:12, rest:60, vid:'mm4wbmtDrUc',
+        steps:['Lie on your back with knees bent and feet flat.','Press through your feet and lift your hips.','Pause, then lower slowly.'], cue:'Avoid overextending your lower back.' },
+      { name:'Bird dog', muscle:'Core', equip:'Bodyweight', sets:3, reps:12, rest:45, vid:'wiFNA3sqjCA',
+        steps:['Start on hands and knees with a steady spine.','Extend the opposite arm and leg.','Return slowly and alternate sides.'], cue:'Keep your hips level.' },
+      { name:'Bench dip', muscle:'Arms', equip:'Bodyweight', sets:3, reps:10, rest:60, vid:'6kALZikXxLc',
+        steps:['Place hands on the edge of a sturdy bench, fingers forward.','Bend elbows to lower through a comfortable range.','Push back up without fully locking the elbows.'], cue:'Keep elbows pointed straight back.' },
+    ]},
+  { id:'chest-shoulders', name:'Chest & shoulders', desc:'Upper body push strength and shoulder health.', accent:'#FFC3A6', icon:'🏆', muscles:['Chest','Shoulders'], mins:40,
+    exercises:[
+      { name:'Dumbbell bench press', muscle:'Chest', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'dGqI0Z5ul4k',
+        steps:['Lie on bench, dumbbells beside chest.','Press upward with wrists over elbows.','Lower slowly, keeping shoulders supported.'], cue:'Use a manageable load.' },
+      { name:'Incline dumbbell press', muscle:'Chest', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'DbFgADa2PL8',
+        steps:['Set bench to 30–45°, press upward with wrists stacked over elbows.','Lower slowly until you feel a comfortable stretch.','Think "up and slightly back".'], cue:'Targets the upper chest.' },
+      { name:'Cable chest fly', muscle:'Chest', equip:'Full gym', sets:3, reps:12, rest:60, vid:'taI4XduLpTk',
+        steps:['Set cables to chest height, step forward.','Bring handles together in a wide arc in front of chest.','Return slowly.'], cue:'Imagine hugging a big tree.' },
+      { name:'Dumbbell lateral raise', muscle:'Shoulders', equip:'Dumbbells', sets:3, reps:12, rest:60, vid:'3VcKaXpzqRo',
+        steps:['Stand tall with light dumbbells at sides.','Raise both arms out to shoulder height with soft elbows.','Lower slowly — this phase builds the muscle.'], cue:'Lead with elbows, not wrists.' },
+      { name:'Cable face pull', muscle:'Shoulders', equip:'Full gym', sets:3, reps:15, rest:60, vid:'rep-qVOkqgk',
+        steps:['Set cable to eye height with rope.','Pull rope toward your face, elbows out and back.','Return slowly.'], cue:'Drive elbows back and apart.' },
+    ]},
+  { id:'back-biceps', name:'Back & biceps', desc:'Pull strength from every angle.', accent:'#A7C8E8', icon:'💎', muscles:['Back','Arms'], mins:40,
+    exercises:[
+      { name:'Barbell bent-over row', muscle:'Back', equip:'Full gym', sets:3, reps:8, rest:90, vid:'vT2GjY_Umpw',
+        steps:['Hinge at the hips, grip the barbell just outside your legs.','Pull the bar toward your lower chest, elbows leading.','Lower with control; flat back throughout.'], cue:'Brace your core before every rep.' },
+      { name:'Lat pulldown', muscle:'Back', equip:'Full gym', sets:3, reps:10, rest:60, vid:'iKrKgWR9wbY',
+        steps:['Sit with thighs secured, comfortable grip.','Pull bar toward upper chest with elbows down.','Return slowly.'], cue:'Avoid pulling bar behind neck.' },
+      { name:'One-arm dumbbell row', muscle:'Back', equip:'Dumbbells', sets:3, reps:10, rest:60, vid:'DhewkuU_95s',
+        steps:['Support one hand on bench, hinge at hips.','Pull dumbbell toward hip without rotating.','Lower with control.'], cue:'Reps per side.' },
+      { name:'Cable face pull', muscle:'Shoulders', equip:'Full gym', sets:3, reps:15, rest:60, vid:'rep-qVOkqgk',
+        steps:['Set cable to eye height with rope.','Pull rope toward face, elbows out and back.','Return slowly.'], cue:'Drive elbows back and apart.' },
+      { name:'Dumbbell curl', muscle:'Arms', equip:'Dumbbells', sets:3, reps:12, rest:60, vid:'ykJmrZ5v0Oo',
+        steps:['Stand with arms at sides, palms forward.','Bend elbows without swinging.','Lower slowly.'], cue:'Keep elbows near sides.' },
+    ]},
+];
+
+const MC = { Chest:'#FFC3A6', Back:'#A7C8E8', Legs:'#C6F36A', Glutes:'#C6F36A',
+             Shoulders:'#B9ACF5', Arms:'#FFC3A6', Core:'#A7C8E8', Cardio:'#98f5c4', Mobility:'#98f5c4' };
+function mc(m){ for(const [k,v] of Object.entries(MC)) if(m.includes(k)) return v; return '#C6F36A'; }
+
+// ── Tab switch ────────────────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name)?.classList.add('active');
+  document.getElementById('tb-'+name)?.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── Chips ─────────────────────────────────────────────────────────────────────
+function setChip(btn, group){
+  document.querySelectorAll('.chip').forEach(c=>{
+    const inGroup = group==='filter'
+      ? ['All workouts','My plans','Archived'].includes(c.textContent.trim())
+      : ['All equipment','Bodyweight','Dumbbells','Full gym'].includes(c.textContent.trim());
+    if(inGroup) c.classList.remove('active');
+  });
+  btn.classList.add('active');
+  renderPlans();
+}
+
+// ── Render plan grid ──────────────────────────────────────────────────────────
+function renderPlans(){
+  const q = (document.getElementById('wsearch')?.value||'').toLowerCase().trim();
+  const plans = q ? PLANS.filter(p=>p.name.toLowerCase().includes(q)||p.desc.toLowerCase().includes(q)) : PLANS;
+  document.getElementById('plan-grid').innerHTML = plans.map(p=>`
+    <a href="#" class="plan-card" onclick="openPlan('${p.id}');return false">
+      <div class="card" style="gap:13px;min-height:195px;transition:.15s">
+        <div class="plan-header">
+          <div class="plan-icon" style="background:${p.accent}18">${p.icon}</div>
+          <span class="badge badge-lime">TEMPLATE</span>
+        </div>
+        <div>
+          <div class="plan-name">${p.name}</div>
+          <div class="plan-desc">${p.desc}</div>
+        </div>
+        <div class="muscle-chips">
+          ${p.muscles.map(m=>`<span class="mtag" style="background:${mc(m)}18;color:${mc(m)}">${m.toUpperCase()}</span>`).join('')}
+        </div>
+        <div class="plan-footer">
+          <span class="plan-meta">${p.exercises.length} exercises · ~${p.mins} min</span>
+          <div class="arrow-circle" style="background:${p.accent}18;color:${p.accent}">↗</div>
+        </div>
+      </div>
+    </a>
+  `).join('');
+}
+
+// ── Open plan detail ──────────────────────────────────────────────────────────
+function openPlan(id){
+  const p = PLANS.find(x=>x.id===id); if(!p) return;
+  document.getElementById('detail-body').innerHTML = `
+    <p class="screen-title">${p.name}</p>
+    <p class="screen-sub">${p.desc}</p>
+    <div class="card">
+      <div class="row between" style="flex-wrap:wrap;gap:8px">
+        <span class="badge badge-lime">CUSTOMIZABLE STARTER TEMPLATE</span>
+        <span class="small-text">${p.exercises.length} exercises · ~${p.mins} min</span>
+      </div>
+      <button class="btn btn-primary" onclick="switchTab('session')">▶ &nbsp;Start workout</button>
+      <div class="btn-row">
+        <button class="btn btn-secondary">✏️ Edit plan</button>
+        <button class="btn btn-secondary">📋 Make a copy</button>
+      </div>
+    </div>
+    <div style="font-size:20px;font-weight:700;letter-spacing:-.04em;margin:16px 0 10px">The game plan</div>
+    ${p.exercises.map((ex,i)=>exCard(ex,i,id)).join('')}
+    <div style="height:16px"></div>
+  `;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-detail').classList.add('active');
+  document.getElementById('tb-workouts').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function exCard(ex,i,pid){
+  const cid=`ex-${pid}-${i}`, n=String(i+1).padStart(2,'0'), tc=mc(ex.muscle);
+  return `
+    <div class="card" style="gap:0">
+      <div onclick="toggleEx('${cid}')" style="cursor:pointer">
+        <div class="ex-header">
+          <div class="ex-num">${n}</div>
+          <div style="flex:1">
+            <div class="ex-name">${ex.name}</div>
+            <div class="ex-tags">
+              <span class="ex-tag" style="background:${tc}18;color:${tc}">${ex.muscle.toUpperCase()}</span>
+              <span class="ex-tag" style="background:#a8b0a315;color:#a8b0a3">${ex.equip.toUpperCase()}</span>
+            </div>
+          </div>
+          <span class="ex-chev" id="${cid}-c">▼</span>
+        </div>
+        <div class="ex-prescription">${ex.sets} sets × ${ex.reps} reps · ${ex.rest}s rest · Choose your load</div>
+      </div>
+      <div class="ex-detail" id="${cid}-d">
+        <div class="instr-box">
+          ${ex.steps.map((s,n)=>`<div class="step-row"><span class="step-n">${n+1}.</span><span class="step-t">${s}</span></div>`).join('')}
+          <div class="coach-cue"><span style="font-size:12px">💡</span><span class="cue-text">${ex.cue}</span></div>
+        </div>
+        ${ex.vid?`
+        <div>
+          <div class="vid-label">DEMONSTRATION VIDEO</div>
+          <div class="vid-wrap" id="${cid}-v">
+            <img class="vid-thumb" src="https://img.youtube.com/vi/${ex.vid}/mqdefault.jpg" alt="${ex.name}" onerror="this.style.opacity=0">
+            <div class="vid-overlay"><div class="play-btn" onclick="playVid('${cid}-v','${ex.vid}')">▶</div></div>
+            <div class="tap-hint">Tap to load video</div>
+          </div>
+        </div>`:''}
+      </div>
+    </div>
+  `;
+}
+
+function toggleEx(cid){
+  const d=document.getElementById(cid+'-d'), c=document.getElementById(cid+'-c');
+  const open=d.classList.contains('open');
+  d.classList.toggle('open',!open);
+  if(c) c.textContent=open?'▼':'▲';
+}
+
+function playVid(wrapId, vid){
+  const w=document.getElementById(wrapId); if(!w) return;
+  w.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&playsinline=1&rel=0&modestbranding=1" style="width:100%;height:100%;border:none" allow="autoplay;encrypted-media;fullscreen" allowfullscreen></iframe>`;
+}
+
+// ── Set mark toggle ───────────────────────────────────────────────────────────
+function toggleSet(el){
+  el.classList.toggle('done');
+  const row=el.closest('.set-row');
+  row?.querySelector('.set-num')?.classList.toggle('done');
+}
+
+// ── Session timer ─────────────────────────────────────────────────────────────
+let seconds=0, timerInterval=null;
+function startTimer(){
+  if(timerInterval) return;
+  timerInterval=setInterval(()=>{
+    seconds++;
+    const m=Math.floor(seconds/60), s=seconds%60;
+    const el=document.getElementById('timer-display');
+    if(el) el.textContent=`⏱ ${m}:${String(s).padStart(2,'0')}`;
+  },1000);
+}
+document.getElementById('tb-session').addEventListener('click',()=>startTimer());
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderPlans();
+</script>
+</body>
+</html>

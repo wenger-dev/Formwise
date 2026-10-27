@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Formwise",
+    "slug": "formwise",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.formwise.fitness"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#101310",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.formwise.fitness",
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
+      "allowBackup": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-sharing",
+      "expo-font",
+      "expo-notifications",
+      "./plugins/withNativeBuildPaths.cjs",
+      "./plugins/withDarkLaunch.cjs",
+    ],
+    "scheme": "formwise",
+    "experiments": {
+      "typedRoutes": false
+    },
+    "backgroundColor": "#101310"
+  }
+}
