@@ -8,12 +8,19 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
 import Feather from '@expo/vector-icons/Feather';
 import { Button, Label } from '../../components/ui';
 import { colors as c } from '../../constants/theme';
 import { youtubeEmbed, youtubeThumbnail, youtubeWatch } from '../../lib/youtube';
 import * as Linking from 'expo-linking';
+
+// Safely require react-native-webview — it needs a native build; Expo Go won't have it.
+let WebView: React.ComponentType<any> | null = null;
+try {
+  WebView = require('react-native-webview').WebView; // eslint-disable-line @typescript-eslint/no-require-imports
+} catch {
+  // Native module unavailable (Expo Go). Fall back to external-link-only UI.
+}
 
 type State = 'thumbnail' | 'loading' | 'playing' | 'error';
 
@@ -40,6 +47,21 @@ export function YouTubePlayer({ videoId }: { videoId: string }) {
   }, []);
 
   const openExternal = () => void Linking.openURL(youtubeWatch(videoId));
+
+  // When WebView isn't available (Expo Go), show a simple external-link card.
+  if (!WebView) {
+    return (
+      <View style={styles.noNativeContainer}>
+        <Feather name="youtube" size={32} color={c.muted} />
+        <Label muted style={styles.noNativeText}>
+          In-app video playback requires a development build. Tap below to watch on YouTube.
+        </Label>
+        <Button title="Open in YouTube" icon="external-link" tone="secondary" onPress={openExternal} />
+      </View>
+    );
+  }
+
+  const WV = WebView;
 
   return (
     <View style={styles.container}>
@@ -77,7 +99,7 @@ export function YouTubePlayer({ videoId }: { videoId: string }) {
             </Label>
           </View>
           {appActive && (
-            <WebView
+            <WV
               key={videoId}
               source={{
                 uri: youtubeEmbed(videoId),
@@ -105,7 +127,7 @@ export function YouTubePlayer({ videoId }: { videoId: string }) {
 
       {/* Active player */}
       {playerState === 'playing' && appActive && (
-        <WebView
+        <WV
           key={videoId}
           source={{
             uri: youtubeEmbed(videoId),
@@ -160,6 +182,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     borderRadius: 14,
     overflow: 'hidden',
+  },
+  noNativeContainer: {
+    width: '100%',
+    minHeight: 160,
+    backgroundColor: '#111',
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    gap: 14,
+  },
+  noNativeText: {
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 280,
   },
   thumbnailWrap: {
     flex: 1,
