@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Card, Chip, Field, Heading, Label, Badge, Row } from '../../components/ui';
 import { Session } from '../../types/domain';
 import { durationLabel, remainingSeconds } from '../../lib/fitness';
+import { scheduleRestNotification, cancelRestNotification } from '../../lib/reminders';
 
 type Timer = Session['timer'];
 export function RestTimer({
@@ -19,20 +20,26 @@ export function RestTimer({
 }) {
   const [custom, setCustom] = useState(String(defaultDuration));
   const remaining = remainingSeconds(timer, now);
-  const start = (seconds: number) =>
-    change((s) => {
+  const start = async (seconds: number) => {
+    await change((s) => {
       s.timer = { duration: seconds, remaining: seconds, endAt: Date.now() + seconds * 1000 };
     });
-  const adjust = (seconds: number) =>
-    change((s) => {
+    void scheduleRestNotification(seconds);
+  };
+  const adjust = async (seconds: number) => {
+    let newLeft = 0;
+    await change((s) => {
       if (!s.timer) return;
-      const left = Math.max(0, Math.min(3600, remainingSeconds(s.timer) + seconds));
+      newLeft = Math.max(0, Math.min(3600, remainingSeconds(s.timer) + seconds));
       s.timer = {
         ...s.timer,
-        remaining: left,
-        endAt: s.timer.endAt === null ? null : Date.now() + left * 1000,
+        remaining: newLeft,
+        endAt: s.timer.endAt === null ? null : Date.now() + newLeft * 1000,
       };
     });
+    if (newLeft > 0) void scheduleRestNotification(newLeft);
+    else void cancelRestNotification();
+  };
   return (
     <Card style={{ borderColor: '#53643C' }}>
       <Row style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
@@ -99,38 +106,45 @@ export function RestTimer({
               title={timer.endAt === null ? 'Resume timer' : 'Pause timer'}
               tone="secondary"
               onPress={() =>
-                run(() =>
-                  change((s) => {
+                run(async () => {
+                  let resuming = false;
+                  let left = 0;
+                  await change((s) => {
                     if (!s.timer) return;
-                    const left = remainingSeconds(s.timer);
+                    left = remainingSeconds(s.timer);
+                    resuming = s.timer.endAt === null;
                     s.timer = {
                       ...s.timer,
                       remaining: left,
-                      endAt: s.timer.endAt === null ? Date.now() + left * 1000 : null,
+                      endAt: resuming ? Date.now() + left * 1000 : null,
                     };
-                  }),
-                )
+                  });
+                  if (resuming && left > 0) void scheduleRestNotification(left);
+                  else void cancelRestNotification();
+                })
               }
             />
             <Button
               title="Reset"
               tone="secondary"
               onPress={() =>
-                run(() =>
-                  change((s) => {
+                run(async () => {
+                  await change((s) => {
                     if (s.timer) s.timer = { ...s.timer, remaining: s.timer.duration, endAt: null };
-                  }),
-                )
+                  });
+                  void cancelRestNotification();
+                })
               }
             />
             <Button
               title={remaining === 0 ? 'Ready for next set' : 'Skip rest'}
               onPress={() =>
-                run(() =>
-                  change((s) => {
+                run(async () => {
+                  await change((s) => {
                     s.timer = null;
-                  }),
-                )
+                  });
+                  void cancelRestNotification();
+                })
               }
             />
           </Row>

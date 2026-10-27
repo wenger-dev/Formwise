@@ -42,6 +42,7 @@ export default function RootLayout() {
           <Stack.Screen name="coach" />
           <Stack.Screen name="exercise-video" />
           <Stack.Screen name="backup-preview" />
+          <Stack.Screen name="workout-complete" />
         </Stack>
       )}
     </SafeAreaProvider>

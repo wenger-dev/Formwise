@@ -1,6 +1,6 @@
 import { TechniqueExtras } from '../../features/workouts/TechniqueExtras';
 import React, { useEffect, useRef, useState } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Pressable } from 'react-native';
 import { router, useLocalSearchParams, usePreventRemove } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
@@ -11,6 +11,7 @@ import {
   Empty,
   Field,
   Heading,
+  Icon,
   IconButton,
   Label,
   ProgressBar,
@@ -38,6 +39,7 @@ import {
 } from '../../lib/fitness';
 import { Session } from '../../types/domain';
 import { RestTimer } from '../../features/workouts/RestTimer';
+import { cancelRestNotification, scheduleRestNotification } from '../../lib/reminders';
 
 type Inputs = Record<string, { reps: string; weight: string }>;
 export default function SessionScreen() {
@@ -108,6 +110,7 @@ export default function SessionScreen() {
       sub.remove();
       if (debounce.current) clearTimeout(debounce.current);
       void flushRef.current().catch((e) => console.warn('Session input save failed', e));
+      void cancelRestNotification();
     };
   }, []);
   const remaining = remainingSeconds(session?.timer ?? null, now);
@@ -303,9 +306,17 @@ export default function SessionScreen() {
       )}
       <Row style={{ justifyContent: 'space-between' }}>
         <Heading small>{historical ? 'Workout results' : 'Your current movement'}</Heading>
-        <Label muted>
-          {session.currentExercise + 1} / {session.exercises.length}
-        </Label>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Exercise overview"
+          onPress={() => action(async () => setOverview(true))}
+          style={{ paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, backgroundColor: c.raised, flexDirection: 'row', alignItems: 'center', gap: 6 }}
+        >
+          <Label muted style={{ fontSize: 13, fontWeight: '600' }}>
+            {session.currentExercise + 1} / {session.exercises.length}
+          </Label>
+          <Icon name="list" size={13} color={c.secondary} />
+        </Pressable>
       </Row>
       <Card>
         <Badge color={c.lavender}>
@@ -441,17 +452,24 @@ export default function SessionScreen() {
                     ))
                   )
                     return;
+                  let restSeconds = 0;
                   await mutate((s) => {
                     const exercise = s.exercises.find((x) => x.id === e.id)!;
                     const target = exercise.sets.find((x) => x.id === set.id)!;
                     target.completed = !target.completed;
-                    if (target.completed && active && s.runningSince !== null)
+                    if (target.completed && active && s.runningSince !== null) {
+                      restSeconds = exercise.rest;
                       s.timer = {
                         duration: exercise.rest,
                         remaining: exercise.rest,
                         endAt: Date.now() + exercise.rest * 1000,
                       };
+                    } else if (!target.completed) {
+                      s.timer = null;
+                    }
                   });
+                  if (restSeconds > 0) void scheduleRestNotification(restSeconds);
+                  else void cancelRestNotification();
                   if (data?.settings.haptics)
                     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
                 })
@@ -565,8 +583,11 @@ export default function SessionScreen() {
                     isComplete(saved) ? 'Finish this workout?' : 'Some sets are still incomplete',
                     `Save ${completedSets(saved)} completed sets? Incomplete sets stay uncompleted in your history.`,
                   )
-                )
+                ) {
+                  void cancelRestNotification();
                   await finish(id);
+                  router.replace({ pathname: '/workout-complete', params: { id } });
+                }
               })
             }
           />
@@ -582,6 +603,7 @@ export default function SessionScreen() {
                     true,
                   )
                 ) {
+                  void cancelRestNotification();
                   await mutate((s) => {
                     s.activeMs = durationMs(s);
                     s.status = 'abandoned';

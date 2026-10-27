@@ -1,5 +1,53 @@
 import { Platform } from 'react-native';
 import { Settings } from '../types/domain';
+
+const REST_DONE_ID = 'formwise-rest-done';
+
+/** Schedule a one-shot local notification N seconds from now for rest-timer end.
+ *  Safe to call on web (no-op). Replaces any previously scheduled rest notification. */
+export async function scheduleRestNotification(seconds: number): Promise<void> {
+  if (Platform.OS === 'web' || seconds <= 0) return;
+  try {
+    const N = await import('expo-notifications');
+    await N.cancelScheduledNotificationAsync(REST_DONE_ID).catch(() => {});
+    if (Platform.OS === 'android')
+      await N.setNotificationChannelAsync('rest-timer', {
+        name: 'Rest timer',
+        importance: N.AndroidImportance.HIGH,
+        sound: null,
+      });
+    const existing = await N.getPermissionsAsync();
+    if (!existing.granted) {
+      const result = await N.requestPermissionsAsync();
+      if (!result.granted) return; // silently skip — not critical
+    }
+    await N.scheduleNotificationAsync({
+      identifier: REST_DONE_ID,
+      content: {
+        title: 'Rest complete.',
+        body: 'Ready for your next set.',
+        sound: false,
+      },
+      trigger: {
+        type: N.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds,
+        channelId: 'rest-timer',
+      },
+    });
+  } catch {
+    // Notification scheduling is best-effort; never block the workout
+  }
+}
+
+/** Cancel the rest-timer notification (call when user skips/resets timer). */
+export async function cancelRestNotification(): Promise<void> {
+  if (Platform.OS === 'web') return;
+  try {
+    const N = await import('expo-notifications');
+    await N.cancelScheduledNotificationAsync(REST_DONE_ID);
+  } catch {}
+}
+
 export async function cancelReminders(ids: string[]) {
   if (Platform.OS === 'web') return;
   const Notifications = await import('expo-notifications');

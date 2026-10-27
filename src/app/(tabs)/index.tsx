@@ -290,12 +290,29 @@ export default function Home() {
                 ))}
               </View>
             ) : (
-              <Card style={{ paddingVertical: 28 }}>
-                <Icon name="wind" color={c.muted} />
-                <Label>No sessions yet. Your story starts here.</Label>
-                <Label muted style={{ fontSize: 12 }}>
-                  Finish a workout to see it in your timeline.
-                </Label>
+              <Card style={{ paddingVertical: 24, gap: 16 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={{ backgroundColor: `${c.lime}19`, borderRadius: 14, padding: 12 }}>
+                    <Icon name="zap" color={c.lime} size={22} />
+                  </View>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Label style={{ fontWeight: '700' }}>Ready to start?</Label>
+                    <Label muted style={{ fontSize: 12 }}>
+                      Pick a workout and log your first session.
+                    </Label>
+                  </View>
+                </View>
+                <Button
+                  title="Browse workouts"
+                  icon="arrow-right"
+                  onPress={() => router.push('/workouts')}
+                />
+                <Button
+                  title="New to training? Start here"
+                  tone="secondary"
+                  icon="compass"
+                  onPress={() => router.push('/coach')}
+                />
               </Card>
             )}
           </View>

@@ -73,33 +73,6 @@ export default function Workouts() {
       subtitle="Good plans. Great possibilities."
       action={<Button title="Create plan" icon="plus" onPress={() => router.push('/plan/new')} />}
     >
-      <Card style={{ backgroundColor: '#252B22' }}>
-        <Row style={{ flexWrap: 'wrap', justifyContent: 'space-between' }}>
-          <View style={{ gap: 6, flex: 1, minWidth: 180 }}>
-            <Heading small>A movement for every moment.</Heading>
-            <Label muted>Explore technique guides for {catalog.length} offline exercises.</Label>
-          </View>
-          <Button
-            title="Exercise library"
-            icon="book-open"
-            tone="secondary"
-            onPress={() => setBrowser(true)}
-          />
-        </Row>
-      </Card>
-      <Card>
-        <Badge>NEW TO TRAINING?</Badge>
-        <Heading small>A little guidance goes a long way.</Heading>
-        <Label muted>
-          12-week beginner plans, technique checklists, recovery activities, and waist trends.
-        </Label>
-        <Button
-          title="Open training companion"
-          tone="secondary"
-          icon="compass"
-          onPress={() => router.push('/coach')}
-        />
-      </Card>
       <Field
         label="Search your workouts"
         placeholder="What do you feel like training?"
@@ -228,6 +201,35 @@ export default function Workouts() {
           action={<Button title="Create a workout" onPress={() => router.push('/plan/new')} />}
         />
       )}
+
+      {/* ── Discovery cards below plans ── */}
+      <Card style={{ backgroundColor: '#252B22' }}>
+        <Row style={{ flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <View style={{ gap: 6, flex: 1, minWidth: 180 }}>
+            <Heading small>A movement for every moment.</Heading>
+            <Label muted>Explore technique guides for {catalog.length} offline exercises.</Label>
+          </View>
+          <Button
+            title="Exercise library"
+            icon="book-open"
+            tone="secondary"
+            onPress={() => setBrowser(true)}
+          />
+        </Row>
+      </Card>
+      <Card>
+        <Badge>NEW TO TRAINING?</Badge>
+        <Heading small>A little guidance goes a long way.</Heading>
+        <Label muted>
+          12-week beginner plans, technique checklists, recovery activities, and waist trends.
+        </Label>
+        <Button
+          title="Open training companion"
+          tone="secondary"
+          icon="compass"
+          onPress={() => router.push('/coach')}
+        />
+      </Card>
       <ExerciseBrowser visible={browser} onClose={() => setBrowser(false)} />
     </Screen>
   );

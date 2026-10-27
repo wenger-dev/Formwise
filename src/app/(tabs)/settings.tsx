@@ -176,20 +176,26 @@ function SettingsContent() {
             />
           ))}
         </Row>
-        <Row>
-          <Field
-            label="Hour (0–23, device time)"
-            value={hour}
-            onChangeText={setHour}
-            keyboardType="number-pad"
-          />
-          <Field
-            label="Minute (0–59)"
-            value={minute}
-            onChangeText={setMinute}
-            keyboardType="number-pad"
-          />
+        <Label muted style={{ fontSize: 12 }}>Reminder time</Label>
+        <Row style={{ flexWrap: 'wrap', gap: 8 }}>
+          {[6, 7, 8, 9, 10, 12, 17, 18, 19, 20, 21].map((h) => (
+            <Chip
+              key={h}
+              title={h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`}
+              selected={Number(hour) === h}
+              onPress={() => { setHour(String(h)); setMinute('0'); }}
+            />
+          ))}
         </Row>
+        <Label muted style={{ fontSize: 11 }}>
+          Selected: {(() => {
+            const h = Number(hour);
+            const m = Number(minute);
+            const period = h < 12 ? 'am' : 'pm';
+            const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
+            return `${displayH}:${String(m).padStart(2, '0')} ${period} device time`;
+          })()}
+        </Label>
         <Button
           title={s.reminder.enabled ? 'Update reminder schedule' : 'Enable reminders'}
           disabled={nativeBusy}
