@@ -129,8 +129,7 @@ export function Ring({
         strokeDasharray={`${Math.min(1, value) * circumference} ${circumference}`}
         strokeLinecap="round"
         fill="none"
-        rotation={-90}
-        origin="45,45"
+        transform="rotate(-90 45 45)"
       />
       <SvgText x={45} y={50} textAnchor="middle" fill={c.text} fontSize={19} fontWeight="700">
         {Math.round(value * 100)}%

@@ -56,11 +56,9 @@ function SettingsContent() {
       {f.feedback}
       <Card>
         <Heading small>Your training space</Heading>
-        <Row style={{ justifyContent: 'space-between' }}>
-          <Label>Appearance</Label>
-          <Badge>ALWAYS DARK</Badge>
-        </Row>
-        <Label muted>Charcoal, a little lime, and room to focus.</Label>
+        <Label muted>
+          Appearance is always dark — charcoal, a little lime, and room to focus.
+        </Label>
         <Label muted>Measurement system</Label>
         <Row>
           {(['metric', 'imperial'] as const).map((v) => (
@@ -113,48 +111,38 @@ function SettingsContent() {
             }
           />
         </Row>
-        <Row>
-          <Field
-            label="Default rest (0–1800 seconds)"
-            value={rest}
-            onChangeText={setRest}
-            keyboardType="number-pad"
-          />
-          <Button
-            title="Save"
-            onPress={() =>
-              void f.run(async () => {
-                if (!rest.trim()) throw new Error('Enter a rest duration.');
-                await update((d) => {
-                  d.settings.rest = Number(rest);
-                });
-              }, 'Default rest saved.')
-            }
-          />
-        </Row>
+        <Field
+          label="Default rest (0–1800 seconds)"
+          value={rest}
+          onChangeText={setRest}
+          keyboardType="number-pad"
+          onBlur={() =>
+            void f.run(async () => {
+              if (!rest.trim()) throw new Error('Enter a rest duration.');
+              await update((d) => {
+                d.settings.rest = Number(rest);
+              });
+            }, 'Default rest saved.')
+          }
+        />
         <Label muted style={{ fontSize: 11 }}>
           Used for exercises you add to a plan. Templates retain their own rest times. Timer audio
           is not enabled.
         </Label>
-        <Row>
-          <Field
-            label="Typical workout (5–240 minutes)"
-            value={duration}
-            onChangeText={setDuration}
-            keyboardType="number-pad"
-          />
-          <Button
-            title="Save duration"
-            onPress={() =>
-              void f.run(async () => {
-                if (!duration.trim()) throw new Error('Enter a workout duration.');
-                await update((d) => {
-                  d.profile.duration = Number(duration);
-                });
-              }, 'Workout duration preference saved.')
-            }
-          />
-        </Row>
+        <Field
+          label="Typical workout (5–240 minutes)"
+          value={duration}
+          onChangeText={setDuration}
+          keyboardType="number-pad"
+          onBlur={() =>
+            void f.run(async () => {
+              if (!duration.trim()) throw new Error('Enter a workout duration.');
+              await update((d) => {
+                d.profile.duration = Number(duration);
+              });
+            }, 'Workout duration preference saved.')
+          }
+        />
       </Card>
       <Card>
         <Row style={{ justifyContent: 'space-between' }}>

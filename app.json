@@ -36,12 +36,22 @@
       "expo-font",
       "expo-notifications",
       "./plugins/withNativeBuildPaths.cjs",
-      "./plugins/withDarkLaunch.cjs",
+      "./plugins/withDarkLaunch.cjs"
     ],
     "scheme": "formwise",
     "experiments": {
       "typedRoutes": false
     },
-    "backgroundColor": "#101310"
+    "backgroundColor": "#101310",
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "6b3706c4-b259-47d4-96af-c67f0befa71d"
+      }
+    }
   }
 }

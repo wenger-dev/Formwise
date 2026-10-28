@@ -86,7 +86,7 @@ export default function Workouts() {
         <View style={{ flex: 1 }} />
         <Chip
           title={sort}
-          selected={false}
+          selected={sort === 'A–Z'}
           onPress={() => setSort(sort === 'A–Z' ? 'Recently used' : 'A–Z')}
         />
       </Row>

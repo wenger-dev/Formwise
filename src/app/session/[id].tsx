@@ -533,6 +533,27 @@ export default function SessionScreen() {
           change={mutate}
         />
       )}
+      {active && (
+        <Button
+          title="Finish workout"
+          icon="check"
+          onPress={() =>
+            action(async () => {
+              const saved = useApp.getState().data!.sessions.find((s) => s.id === id)!;
+              if (
+                await confirm(
+                  isComplete(saved) ? 'Finish this workout?' : 'Some sets are still incomplete',
+                  `Save ${completedSets(saved)} completed sets? Incomplete sets stay uncompleted in your history.`,
+                )
+              ) {
+                void cancelRestNotification();
+                await finish(id);
+                router.replace({ pathname: '/workout-complete', params: { id } });
+              }
+            })
+          }
+        />
+      )}
       <Card>
         <Field
           label="Workout note"
@@ -572,25 +593,6 @@ export default function SessionScreen() {
       </Card>
       {active && (
         <>
-          <Button
-            title="Finish workout"
-            icon="check"
-            onPress={() =>
-              action(async () => {
-                const saved = useApp.getState().data!.sessions.find((s) => s.id === id)!;
-                if (
-                  await confirm(
-                    isComplete(saved) ? 'Finish this workout?' : 'Some sets are still incomplete',
-                    `Save ${completedSets(saved)} completed sets? Incomplete sets stay uncompleted in your history.`,
-                  )
-                ) {
-                  void cancelRestNotification();
-                  await finish(id);
-                  router.replace({ pathname: '/workout-complete', params: { id } });
-                }
-              })
-            }
-          />
           <Button
             title="Abandon workout"
             tone="danger"

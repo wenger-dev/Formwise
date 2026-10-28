@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import {
   Badge,
@@ -24,6 +24,8 @@ import { completedSets, estimatedMinutes, localDate, summary, weekDays } from '.
 export default function Home() {
   const { data, start } = useApp();
   const wide = useWide();
+  const { height: screenHeight } = useWindowDimensions();
+  const heroHeight = screenHeight < 700 ? 220 : 280;
   const f = useFeedback();
   const [selectedDay, setSelectedDay] = useState(localDate());
   const onboarded = data?.profile.onboarded;
@@ -66,7 +68,7 @@ export default function Home() {
             style={{
               backgroundColor: c.lime,
               borderRadius: 28,
-              minHeight: 280,
+              minHeight: heroHeight,
               overflow: 'hidden',
               padding: 26,
             }}

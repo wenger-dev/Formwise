@@ -262,7 +262,8 @@ export function Section({
       <Heading small>{title}</Heading>
       {action && (
         <Pressable
-          accessibilityRole="button"
+          accessibilityRole="link"
+          accessibilityLabel={action}
           onPress={onAction}
           style={{ minHeight: 44, justifyContent: 'center' }}
         >
